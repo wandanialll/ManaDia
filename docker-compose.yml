@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/wandanialll/ManaDia:latest
+    image: ghcr.io/wandanialll/manadia:latest
     restart: always
     volumes:
       - ./data:/app/data
