@@ -109,13 +109,9 @@ async def get_history_by_date(query_date: str = Query(..., description="Date in 
     return {"date": query_date, "count": len(filtered), "data": filtered}
 
 @app.post("/admin/generate-api-key")
-async def generate_api_key(user_name: str = Query(...), basic_auth: str = Header(None)):
-    """Generate a new API key for a user (admin endpoint, requires basic auth)"""
-    # Simple admin auth: check against a master password
-    expected_auth = "Basic " + __import__("base64").b64encode(b"admin:VIVA889").decode()
-    
-    if not basic_auth or basic_auth != expected_auth:
-        raise HTTPException(status_code=401, detail="Admin authentication required")
+async def generate_api_key(user_name: str = Query(...)):
+    """Generate a new API key for a user (admin endpoint, protected by Caddy basicauth)"""
+    # Caddy handles auth, so we just need to generate the key
     
     # Generate API key (hash of user_name + timestamp)
     api_key = hashlib.sha256(f"{user_name}{datetime.utcnow().isoformat()}".encode()).hexdigest()
