@@ -29,16 +29,16 @@ def save_api_keys(data):
     with open(API_KEYS_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
-def verify_api_key(api_key: str = Header(None)):
+def verify_api_key(x_api_key: str = Header(None)):
     """Verify API key from header"""
-    if not api_key:
+    if not x_api_key:
         raise HTTPException(status_code=401, detail="API key required", headers={"WWW-Authenticate": "Bearer"})
     
     keys_data = load_api_keys()
-    if api_key not in keys_data.get("keys", {}):
+    if x_api_key not in keys_data.get("keys", {}):
         raise HTTPException(status_code=403, detail="Invalid API key")
     
-    return keys_data["keys"][api_key]
+    return keys_data["keys"][x_api_key]
 
 def load_locations():
     """Load all locations from file"""
@@ -73,16 +73,16 @@ async def receive_location(request: Request):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @app.get("/history")
-async def get_all_history(api_key: str = Header(None)):
+async def get_all_history(x_api_key: str = Header(None)):
     """Get all location history (requires API key)"""
-    user = verify_api_key(api_key)
+    user = verify_api_key(x_api_key)
     locations = load_locations()
     return {"count": len(locations), "data": locations}
 
 @app.get("/history/date")
-async def get_history_by_date(query_date: str = Query(..., description="Date in YYYY-MM-DD format"), api_key: str = Header(None)):
+async def get_history_by_date(query_date: str = Query(..., description="Date in YYYY-MM-DD format"), x_api_key: str = Header(None)):
     """Get location history for a specific date (requires API key)"""
-    user = verify_api_key(api_key)
+    user = verify_api_key(x_api_key)
     
     try:
         target_date = datetime.strptime(query_date, "%Y-%m-%d").date()
