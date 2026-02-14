@@ -1,123 +1,136 @@
-from fastapi import FastAPI, Request, HTTPException, Query, Header
+from fastapi import FastAPI, Request, HTTPException, Query, Header, Depends
 from fastapi.responses import JSONResponse
-import json
-import os
+from sqlalchemy.orm import Session
 from datetime import datetime, date
-import hashlib
+import os
 
-app = FastAPI()
+from database import init_db, get_db
+from service import LocationService, APIKeyService
 
-DATA_FILE = "data/locations.jsonl"
-API_KEYS_FILE = "data/api_keys.json"
-os.makedirs("data", exist_ok=True)
+app = FastAPI(title="Manadia Location Logger")
 
-# Initialize API keys file if it doesn't exist
-if not os.path.exists(API_KEYS_FILE):
-    with open(API_KEYS_FILE, "w") as f:
-        json.dump({"keys": {}}, f)
+# Initialize database on startup
+@app.on_event("startup")
+def startup():
+    init_db()
 
-def load_api_keys():
-    """Load API keys from file"""
-    try:
-        with open(API_KEYS_FILE, "r") as f:
-            return json.load(f)
-    except Exception:
-        return {"keys": {}}
-
-def save_api_keys(data):
-    """Save API keys to file"""
-    with open(API_KEYS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-def verify_api_key(x_api_key: str = Header(None)):
-    """Verify API key from header"""
-    if not x_api_key:
-        raise HTTPException(status_code=401, detail="API key required", headers={"WWW-Authenticate": "Bearer"})
-    
-    keys_data = load_api_keys()
-    if x_api_key not in keys_data.get("keys", {}):
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    
-    return keys_data["keys"][x_api_key]
-
-def load_locations():
-    """Load all locations from file"""
-    locations = []
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            for line in f:
-                try:
-                    locations.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-    return locations
 
 @app.get("/")
 def health_check():
+    """Health check endpoint"""
     return {"status": "running", "message": "Location logger is active"}
 
+
 @app.post("/pub")
-async def receive_location(request: Request):
+async def receive_location(request: Request, db: Session = Depends(get_db)):
+    """
+    Receive location data from OwnTracks.
+    No authentication required (handled by Caddy basicauth).
+    """
     try:
         data = await request.json()
-        
-        data['_server_received_at'] = datetime.utcnow().isoformat()
-        
-        with open(DATA_FILE, "a") as f:
-            f.write(json.dumps(data) + "\n")
-            
+        service = LocationService(db)
+        location = service.ingest_location(data)
         return []
-        
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+def verify_api_key(x_api_key: str = Header(None), db: Session = Depends(get_db)) -> dict:
+    """
+    Verify API key from header.
+    Returns key info if valid.
+    """
+    if not x_api_key:
+        raise HTTPException(
+            status_code=401,
+            detail="API key required",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    service = APIKeyService(db)
+    if not service.verify_api_key(x_api_key):
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    
+    return service.get_api_key_info(x_api_key)
+
+
 @app.get("/history")
-async def get_all_history(x_api_key: str = Header(None)):
-    """Get all location history (requires API key)"""
-    user = verify_api_key(x_api_key)
-    locations = load_locations()
-    return {"count": len(locations), "data": locations}
+async def get_all_history(
+    db: Session = Depends(get_db),
+    limit: int = Query(None, gt=0, le=10000),
+    offset: int = Query(0, ge=0),
+    key_info: dict = Depends(verify_api_key)
+):
+    """
+    Get all location history with pagination.
+    Requires valid API key.
+    """
+    service = LocationService(db)
+    return service.get_history(limit=limit, offset=offset)
+
 
 @app.get("/history/date")
-async def get_history_by_date(query_date: str = Query(..., description="Date in YYYY-MM-DD format"), x_api_key: str = Header(None)):
-    """Get location history for a specific date (requires API key)"""
-    user = verify_api_key(x_api_key)
-    
+async def get_history_by_date(
+    query_date: str = Query(..., description="Date in YYYY-MM-DD format"),
+    db: Session = Depends(get_db),
+    key_info: dict = Depends(verify_api_key)
+):
+    """
+    Get location history for a specific date.
+    Requires valid API key.
+    """
     try:
         target_date = datetime.strptime(query_date, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     
-    locations = load_locations()
-    filtered = []
-    
-    for loc in locations:
-        try:
-            # Try to parse server timestamp first
-            ts_str = loc.get("_server_received_at") or loc.get("tst")
-            if isinstance(ts_str, str):
-                loc_date = datetime.fromisoformat(ts_str.replace('Z', '+00:00')).date()
-            else:
-                loc_date = datetime.fromtimestamp(ts_str).date()
-            
-            if loc_date == target_date:
-                filtered.append(loc)
-        except (ValueError, TypeError):
-            continue
-    
-    return {"date": query_date, "count": len(filtered), "data": filtered}
+    service = LocationService(db)
+    return service.get_history_by_date(target_date)
+
+
+@app.get("/history/device/{device_id}")
+async def get_device_history(
+    device_id: str,
+    db: Session = Depends(get_db),
+    key_info: dict = Depends(verify_api_key)
+):
+    """
+    Get all location history for a specific device.
+    Requires valid API key.
+    """
+    service = LocationService(db)
+    return service.get_device_history(device_id)
+
 
 @app.post("/admin/generate-api-key")
-async def generate_api_key(user_name: str = Query(...)):
-    """Generate a new API key for a user (admin endpoint, protected by Caddy basicauth)"""
-    # Caddy handles auth, so we just need to generate the key
-    
-    # Generate API key (hash of user_name + timestamp)
-    api_key = hashlib.sha256(f"{user_name}{datetime.utcnow().isoformat()}".encode()).hexdigest()
-    
-    keys_data = load_api_keys()
-    keys_data["keys"][api_key] = {"user": user_name, "created_at": datetime.utcnow().isoformat()}
-    save_api_keys(keys_data)
-    
-    return {"api_key": api_key, "user": user_name, "message": "API key generated successfully"}
+async def generate_api_key(
+    user_name: str = Query(...),
+    description: str = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a new API key for a user.
+    Protected by Caddy basicauth at /admin/* path.
+    """
+    service = APIKeyService(db)
+    result = service.generate_api_key(user_name, description)
+    return {**result, "message": "API key generated successfully"}
+
+
+@app.post("/admin/revoke-api-key")
+async def revoke_api_key(
+    api_key: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Revoke an API key.
+    Protected by Caddy basicauth at /admin/* path.
+    """
+    service = APIKeyService(db)
+    success = service.revoke_api_key(api_key)
+    if success:
+        return {"message": "API key revoked successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="API key not found")
