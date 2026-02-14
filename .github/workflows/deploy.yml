@@ -51,9 +51,13 @@ jobs:
             # Pull latest image (public package, no login needed)
             docker pull ${{ steps.image.outputs.name }}:latest
 
-            # Download docker-compose.yml and Caddyfile template from the repo
-            curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
-            curl -o Caddyfile.template https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/Caddyfile
+            # Check if repo already exists, if so update it
+            if [ -d .git ]; then
+              git pull origin ${{ github.ref_name }}
+            else
+              # Clone entire repository (includes frontend/ directory)
+              git clone --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+            fi
 
             # Ensure .env file exists with required credentials
             if [ ! -f .env ]; then
@@ -89,7 +93,6 @@ jobs:
             fi
 
             # Inject password hashes into Caddyfile from .env values
-            cp Caddyfile.template Caddyfile
             sed -i "s|OWNTRACKS_HASH_PLACEHOLDER|$CADDY_OWNTRACKS_PASSWORD_HASH|g" Caddyfile
             sed -i "s|ADMIN_HASH_PLACEHOLDER|$CADDY_ADMIN_PASSWORD_HASH|g" Caddyfile
 
