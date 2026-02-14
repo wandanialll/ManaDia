@@ -35,6 +35,16 @@ services:
       db:
         condition: service_healthy
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    expose:
+      - "3000"
+    depends_on:
+      - app
+
   caddy:
     image: caddy:latest
     restart: always
@@ -47,6 +57,7 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+      - frontend
 
 volumes:
   caddy_data:

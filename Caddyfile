@@ -7,5 +7,22 @@ manadia.wandanial.com {
 		admin ADMIN_HASH_PLACEHOLDER
 	}
 
+	# Dashboard (requires admin auth)
+	basic_auth /dashboard/* {
+		admin ADMIN_HASH_PLACEHOLDER
+	}
+
+	# Route dashboard to frontend service
+	handle /dashboard/* {
+		reverse_proxy frontend:3000
+	}
+
+	# Route API calls to backend
+	reverse_proxy /pub* app:8000
+	reverse_proxy /admin* app:8000
+	reverse_proxy /api* app:8000
+	reverse_proxy /health* app:8000
+
+	# Default route
 	reverse_proxy app:8000
 }
