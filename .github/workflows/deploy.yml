@@ -56,12 +56,20 @@ jobs:
               # Repository exists, just pull latest
               git pull origin ${{ github.ref_name }}
             else
-              # Repository doesn't exist, remove everything and clone fresh
+              # Repository doesn't exist, backup .env and clone fresh
+              ENV_BACKUP="/tmp/manadia.env.backup"
+              if [ -f .env ]; then
+                cp .env "$ENV_BACKUP"
+              fi
               cd ..
               rm -rf location-logger
               mkdir -p location-logger
               cd location-logger
               git clone --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
+              # Restore .env if it was backed up
+              if [ -f "$ENV_BACKUP" ]; then
+                cp "$ENV_BACKUP" .env
+              fi
             fi
 
             # Ensure .env file exists with required credentials
