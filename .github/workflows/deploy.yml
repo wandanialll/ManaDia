@@ -51,6 +51,39 @@ jobs:
             curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
             curl -o Caddyfile https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/Caddyfile
 
+            # Ensure .env file exists with required credentials
+            if [ ! -f .env ]; then
+              echo "ERROR: .env file not found in /opt/location-logger/"
+              echo "You must create a .env file with the following variables:"
+              echo "  DB_PASSWORD=your_secure_password"
+              echo "  CADDY_ADMIN_PASSWORD_HASH=your_admin_hash"
+              echo "  CADDY_OWNTRACKS_PASSWORD_HASH=your_owntracks_hash"
+              echo ""
+              echo "See .env.example for instructions on generating password hashes:"
+              echo "  curl https://raw.githubusercontent.com/${{ github.repository }}/main/.env.example"
+              exit 1
+            fi
+
+            # Verify required variables are set
+            set -a
+            source .env
+            set +a
+
+            if [ -z "$DB_PASSWORD" ]; then
+              echo "ERROR: DB_PASSWORD is not set in .env file"
+              exit 1
+            fi
+
+            if [ -z "$CADDY_ADMIN_PASSWORD_HASH" ]; then
+              echo "ERROR: CADDY_ADMIN_PASSWORD_HASH is not set in .env file"
+              exit 1
+            fi
+
+            if [ -z "$CADDY_OWNTRACKS_PASSWORD_HASH" ]; then
+              echo "ERROR: CADDY_OWNTRACKS_PASSWORD_HASH is not set in .env file"
+              exit 1
+            fi
+
             # Stop and remove old containers
             docker compose down || true
 
