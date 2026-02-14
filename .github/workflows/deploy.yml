@@ -56,9 +56,11 @@ jobs:
               # Repository exists, just pull latest
               git pull origin ${{ github.ref_name }}
             else
-              # Repository doesn't exist, clean up directory and clone fresh
-              rm -rf ./* 2>/dev/null || true
-              rm -rf .git .gitignore .dockerignore 2>/dev/null || true
+              # Repository doesn't exist, remove everything and clone fresh
+              cd ..
+              rm -rf location-logger
+              mkdir -p location-logger
+              cd location-logger
               git clone --branch ${{ github.ref_name }} https://github.com/${{ github.repository }}.git .
             fi
 
