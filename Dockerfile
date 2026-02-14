@@ -10,6 +10,8 @@ COPY database.py .
 COPY models.py .
 COPY repository.py .
 COPY service.py .
+COPY config.py .
+COPY audit_logger.py .
 COPY migrate_data.py .
 
 # Run the app
