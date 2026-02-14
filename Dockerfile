@@ -6,6 +6,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py .
+COPY database.py .
+COPY models.py .
+COPY repository.py .
+COPY service.py .
+COPY migrate_data.py .
 
 # Run the app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
