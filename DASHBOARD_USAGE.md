@@ -3,16 +3,19 @@
 ## Quick Start (Local)
 
 ### Prerequisites
+
 - Node.js 20+
 - Docker & Docker Compose
 - Backend running on `localhost:8000`
 
 ### Development Server
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
 Access at `http://localhost:5173/dashboard/`
 
 Dev server proxies `/api/*` to `http://localhost:8000` automatically.
@@ -31,6 +34,7 @@ curl https://yourdomain.com/dashboard/
 ```
 
 Caddy will handle:
+
 - SSL/TLS certificate provisioning
 - Basic auth at `/dashboard/*`
 - Routing to frontend service
@@ -38,17 +42,20 @@ Caddy will handle:
 ## Dashboard Features
 
 ### Login
+
 1. Visit `/dashboard/`
 2. Enter admin credentials (defaults shown in Caddyfile)
 3. Credentials stored in browser for convenience
 
 ### Map View
+
 - **Interactive Leaflet map** with real-time markers
 - **Click markers** to see location details
 - **Auto-adjusts zoom** to show all current locations
 - **Color-coded** markers by device/user (can be enhanced)
 
 ### Sidebar
+
 - **Recent Locations**: Shows 20 most recent location pings
 - **User Filter**: Dropdown to filter by tracked user
 - **Device Filter**: Dropdown to filter by device name
@@ -58,6 +65,7 @@ Caddy will handle:
 ### Location Details
 
 Each location shows:
+
 - User name
 - Device name
 - Latitude/Longitude
@@ -66,26 +74,33 @@ Each location shows:
 - Altitude (if available)
 
 ### Auto-Refresh
+
 Dashboard polls backend every **10 seconds** for new locations automatically.
 
 ## Configuration
 
 ### Change Dashboard Path
+
 Edit `vite.config.ts`:
+
 ```ts
 export default defineConfig({
-  base: '/dashboard/',  // Change this path
-})
+	base: "/dashboard/", // Change this path
+});
 ```
 
 ### Change Poll Interval
+
 Edit `frontend/src/components/Dashboard.tsx`:
+
 ```ts
-setInterval(fetchLocations, 10000) // Change 10000 ms
+setInterval(fetchLocations, 10000); // Change 10000 ms
 ```
 
 ### Change Map Provider
+
 Edit `frontend/src/components/MapComponent.tsx`:
+
 ```ts
 <TileLayer
   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -98,6 +113,7 @@ Edit `frontend/src/components/MapComponent.tsx`:
 Frontend calls these backend endpoints:
 
 ### Get All Locations
+
 ```
 GET /api/history
 Authorization: Basic {base64(admin:password)}
@@ -121,12 +137,14 @@ Response:
 ```
 
 ### Get Locations by Date
+
 ```
 GET /api/history/date?query_date=2026-02-14
 Authorization: Basic {base64(admin:password)}
 ```
 
 ### Get Device History
+
 ```
 GET /api/history/device/iPhone
 Authorization: Basic {base64(admin:password)}
@@ -135,26 +153,31 @@ Authorization: Basic {base64(admin:password)}
 ## Troubleshooting
 
 ### "API connection failed"
+
 - Check backend is running on `:8000`
 - Verify Caddy is routing `/api/*` to `app:8000`
 - Check credentials are correct
 
 ### Map not loading
+
 - Check browser console for errors
 - Verify OpenStreetMap CDN is accessible
 - Check `MapComponent.tsx` for tile provider issues
 
 ### Dashboard blank after login
+
 - Check browser console for JavaScript errors
 - Verify locations exist in backend database
 - Try refresh button or `F5` to reload
 
 ### Slow updates
+
 - Check network tab in DevTools for API calls
 - Verify backend query performance
 - Increase polling interval if server is slow
 
 ### CORS issues (dev only)
+
 - Dev server proxies `/api/*` to avoid CORS
 - Production routing handled by Caddy (no CORS needed)
 

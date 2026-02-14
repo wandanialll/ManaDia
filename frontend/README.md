@@ -25,6 +25,7 @@ Visit `http://localhost:5173/dashboard/` (Vite dev server)
 ### Production (Docker)
 
 The frontend is built as a Docker service in the docker-compose setup:
+
 - Builds React + TypeScript with Vite
 - Serves static files via http-server on port 3000
 - Caddy reverse-proxies `/dashboard/*` to the frontend service
@@ -40,6 +41,7 @@ The frontend is built as a Docker service in the docker-compose setup:
 ## API Integration
 
 The frontend calls these backend endpoints:
+
 - `GET /api/history` - Get all locations
 - `GET /api/history/date?query_date=YYYY-MM-DD` - Get locations by date
 - `GET /api/history/device/{device}` - Get locations by device

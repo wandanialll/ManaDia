@@ -3,38 +3,43 @@
 ## What Was Created
 
 ### 1. **React + TypeScript Frontend (Vite)**
-   - Location: `frontend/` directory
-   - Framework: React 18 + TypeScript 5
-   - Build tool: Vite (fast, modern bundler)
-   - Styling: Modular CSS per component
+
+- Location: `frontend/` directory
+- Framework: React 18 + TypeScript 5
+- Build tool: Vite (fast, modern bundler)
+- Styling: Modular CSS per component
 
 ### 2. **Dashboard Features**
-   - **Interactive Map**: Leaflet-based map with real-time location markers
-   - **Location Sidebar**: Shows recent 20 locations with user/device info
-   - **Filter Controls**: Filter by user and device name
-   - **Auto-refresh**: Polls backend every 10 seconds for new locations
-   - **Location Details**: Click markers to see timestamps, accuracy, and coordinates
+
+- **Interactive Map**: Leaflet-based map with real-time location markers
+- **Location Sidebar**: Shows recent 20 locations with user/device info
+- **Filter Controls**: Filter by user and device name
+- **Auto-refresh**: Polls backend every 10 seconds for new locations
+- **Location Details**: Click markers to see timestamps, accuracy, and coordinates
 
 ### 3. **Authentication System**
-   - Login page with admin credentials entry
-   - Credentials stored securely in localStorage
-   - Automatic auth header injection in all API calls
-   - Logout button in dashboard header
-   - Session persistence across page reloads
+
+- Login page with admin credentials entry
+- Credentials stored securely in localStorage
+- Automatic auth header injection in all API calls
+- Logout button in dashboard header
+- Session persistence across page reloads
 
 ### 4. **Docker Integration**
-   - Frontend Dockerfile: Multi-stage build (small production image)
-   - Integrated with docker-compose
-   - Frontend service (Node.js + http-server) on port 3000
-   - Caddy reverse-proxies `/dashboard/*` routes to frontend:3000
+
+- Frontend Dockerfile: Multi-stage build (small production image)
+- Integrated with docker-compose
+- Frontend service (Node.js + http-server) on port 3000
+- Caddy reverse-proxies `/dashboard/*` routes to frontend:3000
 
 ### 5. **API Integration**
-   - Axios client with auth interceptor
-   - Automatic Basic Auth headers on all requests
-   - Calls existing backend endpoints:
-     - `GET /api/history` (all locations)
-     - `GET /api/history/date?query_date=...` (by date)
-     - `GET /api/history/device/{device}` (by device)
+
+- Axios client with auth interceptor
+- Automatic Basic Auth headers on all requests
+- Calls existing backend endpoints:
+  - `GET /api/history` (all locations)
+  - `GET /api/history/date?query_date=...` (by date)
+  - `GET /api/history/device/{device}` (by device)
 
 ### 6. **Deployment Architecture**
 
@@ -85,6 +90,7 @@ ManaDia/
 ## Key Configuration Changes
 
 ### docker-compose.yml
+
 ```yaml
 frontend:
   build:
@@ -98,6 +104,7 @@ frontend:
 ```
 
 ### Caddyfile
+
 ```plaintext
 handle /dashboard/* {
   reverse_proxy frontend:3000
@@ -105,6 +112,7 @@ handle /dashboard/* {
 ```
 
 ## Monorepo Benefits
+
 - ✅ Single deployment: `docker compose up`
 - ✅ Shared versioning (backend + frontend in sync)
 - ✅ One git repo for the entire system
@@ -153,18 +161,18 @@ docker compose up -d
 
 ## Stack Summary
 
-| Component | Technology |
-|-----------|------------|
-| Frontend Framework | React 18 |
-| Language | TypeScript |
-| Build Tool | Vite |
-| Map Library | Leaflet + react-leaflet |
-| HTTP Client | Axios |
-| Auth | HTTP Basic Auth (localStorage) |
-| Container | Docker + docker-compose |
-| Reverse Proxy | Caddy |
-| Hosting | Same droplet as backend |
-| Subdirectory | `/dashboard/*` |
+| Component          | Technology                     |
+| ------------------ | ------------------------------ |
+| Frontend Framework | React 18                       |
+| Language           | TypeScript                     |
+| Build Tool         | Vite                           |
+| Map Library        | Leaflet + react-leaflet        |
+| HTTP Client        | Axios                          |
+| Auth               | HTTP Basic Auth (localStorage) |
+| Container          | Docker + docker-compose        |
+| Reverse Proxy      | Caddy                          |
+| Hosting            | Same droplet as backend        |
+| Subdirectory       | `/dashboard/*`                 |
 
 ## Notes
 
