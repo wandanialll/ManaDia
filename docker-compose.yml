@@ -45,9 +45,6 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    environment:
-      - CADDY_ADMIN_PASSWORD_HASH=${CADDY_ADMIN_PASSWORD_HASH} # Required
-      - CADDY_OWNTRACKS_PASSWORD_HASH=${CADDY_OWNTRACKS_PASSWORD_HASH} # Required
     depends_on:
       - app
 

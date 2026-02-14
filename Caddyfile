@@ -1,11 +1,11 @@
 manadia.wandanial.com {
-    basicauth /pub {
-        owntracks {$CADDY_OWNTRACKS_PASSWORD_HASH}
-    }
+	basic_auth /pub {
+		owntracks OWNTRACKS_HASH_PLACEHOLDER
+	}
 
-    basicauth /admin/* {
-        admin {$CADDY_ADMIN_PASSWORD_HASH}
-    }
+	basic_auth /admin/* {
+		admin ADMIN_HASH_PLACEHOLDER
+	}
 
-    reverse_proxy app:8000
+	reverse_proxy app:8000
 }

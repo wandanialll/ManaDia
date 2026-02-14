@@ -51,9 +51,9 @@ jobs:
             # Pull latest image (public package, no login needed)
             docker pull ${{ steps.image.outputs.name }}:latest
 
-            # Download docker-compose.yml and Caddyfile from the repo
+            # Download docker-compose.yml and Caddyfile template from the repo
             curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
-            curl -o Caddyfile https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/Caddyfile
+            curl -o Caddyfile.template https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/Caddyfile
 
             # Ensure .env file exists with required credentials
             if [ ! -f .env ]; then
@@ -85,6 +85,18 @@ jobs:
 
             if [ -z "$CADDY_OWNTRACKS_PASSWORD_HASH" ]; then
               echo "ERROR: CADDY_OWNTRACKS_PASSWORD_HASH is not set in .env file"
+              exit 1
+            fi
+
+            # Inject password hashes into Caddyfile from .env values
+            cp Caddyfile.template Caddyfile
+            sed -i "s|OWNTRACKS_HASH_PLACEHOLDER|$CADDY_OWNTRACKS_PASSWORD_HASH|g" Caddyfile
+            sed -i "s|ADMIN_HASH_PLACEHOLDER|$CADDY_ADMIN_PASSWORD_HASH|g" Caddyfile
+
+            # Verify hashes were injected (should NOT contain placeholders)
+            if grep -q 'PLACEHOLDER' Caddyfile; then
+              echo "ERROR: Password hashes not injected into Caddyfile."
+              echo "Ensure CADDY_ADMIN_PASSWORD_HASH and CADDY_OWNTRACKS_PASSWORD_HASH are set in .env"
               exit 1
             fi
 
