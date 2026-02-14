@@ -11,9 +11,16 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Lowercase image name
+        id: image
+        run: echo "name=${IMAGE_NAME,,}" >> $GITHUB_OUTPUT
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -27,7 +34,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ${{ steps.image.outputs.name }}:latest
 
       - name: Deploy to Droplet via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -41,11 +48,8 @@ jobs:
             mkdir -p /opt/location-logger
             cd /opt/location-logger
 
-            # Login to GitHub Container Registry on the droplet
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # Pull latest image
-            docker pull ghcr.io/${{ github.repository }}:latest
+            # Pull latest image (public package, no login needed)
+            docker pull ${{ steps.image.outputs.name }}:latest
 
             # Download docker-compose.yml and Caddyfile from the repo
             curl -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
