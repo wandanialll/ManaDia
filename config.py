@@ -35,10 +35,6 @@ class Config:
         """
         errors = []
         
-        # Check database configuration
-        if not cls.DB_PASSWORD:
-            errors.append("DB_PASSWORD environment variable is required")
-        
         # Build DATABASE_URL if not provided
         if not cls.DATABASE_URL:
             if cls.DB_PASSWORD:
@@ -49,6 +45,10 @@ class Config:
                 cls.DATABASE_URL = f"postgresql://{db_user}:{cls.DB_PASSWORD}@{db_host}:{db_port}/{db_name}"
             else:
                 errors.append("DATABASE_URL or DB_PASSWORD environment variable is required")
+        
+        # DB_PASSWORD is only required for PostgreSQL (not SQLite)
+        if "sqlite" not in cls.DATABASE_URL and not cls.DB_PASSWORD:
+            errors.append("DB_PASSWORD environment variable is required for PostgreSQL")
         
         # Check Caddy configuration (optional if using different auth method)
         # These are loaded but not strictly required if auth is disabled

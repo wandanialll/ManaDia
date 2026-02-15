@@ -162,11 +162,3 @@ class APIKeyRepository:
             self.db.commit()
             return True
         return False
-        return False
-
-    def update_last_used(self, key: str):
-        """Update last used timestamp for an API key"""
-        api_key = self.db.query(APIKey).filter(APIKey.key == key).first()
-        if api_key:
-            api_key.last_used = datetime.utcnow()
-            self.db.commit()

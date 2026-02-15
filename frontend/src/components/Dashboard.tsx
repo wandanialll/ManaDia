@@ -5,6 +5,8 @@ import LocationList from "./LocationList";
 import Controls from "./Controls";
 import { getLocations, Location } from "../api/client";
 import "./Dashboard.css";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
 
 export default function Dashboard() {
 	const { username, logout } = useAuth();
@@ -63,13 +65,18 @@ export default function Dashboard() {
 	return (
 		<div className="dashboard">
 			<div className="dashboard-sidebar">
-				<div className="dashboard-header">
+				<div className="flex justify-between items-center mx-3">
 					<h1>Manadia Dashboard</h1>
-					<div className="user-info">
-						<span className="username">{username}</span>
-						<button className="logout-btn" onClick={logout} title="Logout">
-							✕
-						</button>
+					<div>
+						<Badge variant="outline">{username}</Badge>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={logout}
+							className="ml-2"
+						>
+							Logout
+						</Button>
 					</div>
 				</div>
 				<Controls

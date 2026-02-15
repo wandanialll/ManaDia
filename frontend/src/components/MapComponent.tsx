@@ -1,5 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Location } from "../api/client";
+import { CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "./MapComponent.css";
 
@@ -34,11 +35,14 @@ export default function MapComponent({ locations }: MapComponentProps) {
 	return (
 		<MapContainer center={center} zoom={13} className="map-container">
 			<TileLayer
-				attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-				url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+				attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+				url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
 			/>
 			{locations.map((location, idx) => (
-				<Marker key={idx} position={[location.latitude, location.longitude]}>
+				<CircleMarker
+					key={idx}
+					center={[location.latitude, location.longitude]}
+				>
 					<Popup>
 						<div className="popup-content">
 							<p>
@@ -57,7 +61,7 @@ export default function MapComponent({ locations }: MapComponentProps) {
 							</p>
 						</div>
 					</Popup>
-				</Marker>
+				</CircleMarker>
 			))}
 		</MapContainer>
 	);
