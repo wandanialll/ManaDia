@@ -21,10 +21,19 @@ manadia.wandanial.com {
 		reverse_proxy frontend:3000
 	}
 
-	# Route API calls to backend
+	# Dashboard API calls (requires admin auth, strips /api prefix)
+	basic_auth /api/* {
+		admin ADMIN_HASH_PLACEHOLDER
+	}
+
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy app:8000
+	}
+
+	# Route other calls to backend
 	reverse_proxy /pub* app:8000
 	reverse_proxy /admin* app:8000
-	reverse_proxy /api* app:8000
 	reverse_proxy /health* app:8000
 
 	# Default route

@@ -130,6 +130,12 @@ def health_check():
     return {"status": "running", "message": "Location logger is active"}
 
 
+@app.get("/health")
+def health():
+    """Health check endpoint (alias)"""
+    return {"status": "running", "message": "Location logger is active"}
+
+
 @app.post("/pub")
 async def receive_location(request: Request, db: Session = Depends(get_db)):
     """
@@ -156,23 +162,38 @@ async def receive_location(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-def verify_api_key(x_api_key: str = Header(None), db: Session = Depends(get_db)) -> dict:
+def verify_api_key(
+    x_api_key: str = Header(None),
+    authorization: str = Header(None),
+    db: Session = Depends(get_db)
+) -> dict:
     """
-    Verify API key from header.
-    Returns key info if valid.
+    Verify authentication via API key or Basic auth.
+    Basic auth is trusted because only Caddy (which validates credentials)
+    can reach this service — the app port is not publicly exposed.
     """
-    if not x_api_key:
-        raise HTTPException(
-            status_code=401,
-            detail="API key required",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
+    # Option 1: API key authentication
+    if x_api_key:
+        service = APIKeyService(db)
+        if not service.verify_api_key(x_api_key):
+            raise HTTPException(status_code=403, detail="Invalid API key")
+        return service.get_api_key_info(x_api_key)
     
-    service = APIKeyService(db)
-    if not service.verify_api_key(x_api_key):
-        raise HTTPException(status_code=403, detail="Invalid API key")
+    # Option 2: Basic auth (already validated by Caddy reverse proxy)
+    if authorization and authorization.startswith("Basic "):
+        import base64
+        try:
+            decoded = base64.b64decode(authorization[6:]).decode("utf-8")
+            username = decoded.split(":", 1)[0]
+            return {"user": username, "auth_type": "basic"}
+        except Exception:
+            pass
     
-    return service.get_api_key_info(x_api_key)
+    raise HTTPException(
+        status_code=401,
+        detail="Authentication required",
+        headers={"WWW-Authenticate": "Bearer"}
+    )
 
 
 @app.get("/history")

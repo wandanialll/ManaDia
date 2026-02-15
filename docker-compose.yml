@@ -29,8 +29,8 @@ services:
       - API_KEY_EXPIRATION_DAYS=${API_KEY_EXPIRATION_DAYS:-365}
     volumes:
       - ./data:/app/data
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
