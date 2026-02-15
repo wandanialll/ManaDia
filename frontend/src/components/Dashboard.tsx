@@ -21,7 +21,7 @@ export default function Dashboard() {
 			try {
 				setLoading(true);
 				const response = await getLocations();
-				setLocations(response.data.locations);
+				setLocations(response.data.data || []);
 				setError(null);
 			} catch (err) {
 				setError(
@@ -41,17 +41,19 @@ export default function Dashboard() {
 	useEffect(() => {
 		let filtered = locations;
 		if (selectedUser) {
-			filtered = filtered.filter((loc) => loc.user === selectedUser);
+			filtered = filtered.filter((loc) => loc.user_id === selectedUser);
 		}
 		if (selectedDevice) {
-			filtered = filtered.filter((loc) => loc.device === selectedDevice);
+			filtered = filtered.filter((loc) => loc.device_id === selectedDevice);
 		}
 		setFilteredLocations(filtered);
 	}, [locations, selectedUser, selectedDevice]);
 
-	const uniqueUsers = [...new Set(locations.map((loc) => loc.user))];
+	const uniqueUsers = [...new Set(locations.map((loc) => loc.user_id))];
 	const uniqueDevices = [
-		...new Set(locations.flatMap((loc) => (loc.device ? [loc.device] : []))),
+		...new Set(
+			locations.flatMap((loc) => (loc.device_id ? [loc.device_id] : [])),
+		),
 	];
 
 	if (loading && locations.length === 0) {

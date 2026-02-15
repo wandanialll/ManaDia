@@ -25,18 +25,22 @@ apiClient.interceptors.request.use((config) => {
 
 export interface Location {
 	id: number;
-	user: string;
+	user_id: string;
 	latitude: number;
 	longitude: number;
 	altitude: number | null;
 	accuracy: number | null;
 	timestamp: string;
-	device: string | null;
+	device_id: string | null;
+	tracker_id: string | null;
+	battery: number | null;
+	connection: string | null;
+	server_received_at: string;
 }
 
 export interface LocationResponse {
-	locations: Location[];
-	count: number;
+	total: number;
+	data: Location[];
 }
 
 export const getLocations = () => apiClient.get<LocationResponse>("/history");

@@ -42,10 +42,10 @@ export default function MapComponent({ locations }: MapComponentProps) {
 					<Popup>
 						<div className="popup-content">
 							<p>
-								<strong>User:</strong> {location.user}
+								<strong>User:</strong> {location.user_id}
 							</p>
 							<p>
-								<strong>Device:</strong> {location.device || "Unknown"}
+								<strong>Device:</strong> {location.device_id || "Unknown"}
 							</p>
 							<p>
 								<strong>Time:</strong>{" "}

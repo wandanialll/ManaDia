@@ -16,8 +16,10 @@ export default function LocationList({ locations }: LocationListProps) {
 					locations.slice(0, 20).map((loc, idx) => (
 						<div key={idx} className="list-item">
 							<div className="list-item-header">
-								<strong>{loc.user}</strong>
-								<span className="device-badge">{loc.device || "Unknown"}</span>
+								<strong>{loc.user_id}</strong>
+								<span className="device-badge">
+									{loc.device_id || "Unknown"}
+								</span>
 							</div>
 							<div className="list-item-coords">
 								{loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
