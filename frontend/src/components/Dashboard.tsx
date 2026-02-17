@@ -7,6 +7,7 @@ import { getLocations, Location } from "../api/client";
 import "./Dashboard.css";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
 
 export default function Dashboard() {
 	const { username, logout } = useAuth();
@@ -16,6 +17,8 @@ export default function Dashboard() {
 	const [error, setError] = useState<string | null>(null);
 	const [selectedUser, setSelectedUser] = useState<string | null>(null);
 	const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
+	const [showMobileList, setShowMobileList] = useState(false);
+	const [showFilters, setShowFilters] = useState(false);
 
 	// Fetch locations on mount and set up polling
 	useEffect(() => {
@@ -67,32 +70,59 @@ export default function Dashboard() {
 			<div className="dashboard-sidebar">
 				<div className="flex justify-between items-center mx-3">
 					<h1>Manadia Dashboard</h1>
-					<div>
-						<Badge variant="outline">{username}</Badge>
+					<div className="flex items-center gap-2">
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={logout}
-							className="ml-2"
+							onClick={() => setShowFilters(!showFilters)}
 						>
+							{showFilters ? "Hide Filters" : "Filters"}
+							{(selectedUser || selectedDevice) && " •"}
+						</Button>
+						<Badge variant="outline">{username}</Badge>
+						<Button variant="outline" size="sm" onClick={logout}>
 							Logout
 						</Button>
 					</div>
 				</div>
-				<Controls
-					users={uniqueUsers}
-					devices={uniqueDevices}
-					selectedUser={selectedUser}
-					selectedDevice={selectedDevice}
-					onUserChange={setSelectedUser}
-					onDeviceChange={setSelectedDevice}
-					onRefresh={() => location.reload()}
-				/>
+				{showFilters && (
+					<Controls
+						users={uniqueUsers}
+						devices={uniqueDevices}
+						selectedUser={selectedUser}
+						selectedDevice={selectedDevice}
+						onUserChange={setSelectedUser}
+						onDeviceChange={setSelectedDevice}
+						onRefresh={() => location.reload()}
+					/>
+				)}
 				{error && <div className="error">{error}</div>}
-				<LocationList locations={filteredLocations} />
+				<div className="hidden md:flex flex-1 overflow-hidden">
+					<LocationList locations={filteredLocations} />
+				</div>
 			</div>
 			<div className="dashboard-map">
 				<MapComponent locations={filteredLocations} />
+
+				{/* Mobile floating list toggle */}
+				{!showMobileList && (
+					<Button
+						className="mobile-list-toggle md:hidden absolute bottom-4 left-4 z-[1000] shadow-lg"
+						onClick={() => setShowMobileList(true)}
+					>
+						Locations ({filteredLocations.length})
+					</Button>
+				)}
+
+				{/* Mobile floating location list */}
+				{showMobileList && (
+					<Card className="md:hidden absolute bottom-0 left-0 right-0 z-[1000] max-h-[60vh] overflow-y-auto rounded-b-none shadow-lg">
+						<LocationList
+							locations={filteredLocations}
+							onClose={() => setShowMobileList(false)}
+						/>
+					</Card>
+				)}
 			</div>
 		</div>
 	);

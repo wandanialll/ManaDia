@@ -1,8 +1,9 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useState } from "react";
+import { MapContainer, TileLayer } from "react-leaflet";
 import { Location } from "../api/client";
 import { CircleMarker } from "react-leaflet";
 import L from "leaflet";
-import "./MapComponent.css";
+import { Card, CardContent } from "./ui/card";
 
 // Fix Leaflet marker images
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -20,6 +21,8 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ locations }: MapComponentProps) {
+	const [selected, setSelected] = useState<Location | null>(null);
+
 	if (locations.length === 0) {
 		return <div className="map-empty">No locations to display</div>;
 	}
@@ -33,36 +36,52 @@ export default function MapComponent({ locations }: MapComponentProps) {
 			: ([0, 0] as [number, number]);
 
 	return (
-		<MapContainer center={center} zoom={13} className="map-container">
-			<TileLayer
-				attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-				url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-			/>
-			{locations.map((location, idx) => (
-				<CircleMarker
-					key={idx}
-					center={[location.latitude, location.longitude]}
-				>
-					<Popup>
-						<div className="popup-content">
-							<p>
-								<strong>User:</strong> {location.user_id}
-							</p>
-							<p>
-								<strong>Device:</strong> {location.device_id || "Unknown"}
-							</p>
-							<p>
-								<strong>Time:</strong>{" "}
-								{new Date(location.timestamp).toLocaleString()}
-							</p>
-							<p>
-								<strong>Accuracy:</strong>{" "}
-								{location.accuracy ? location.accuracy.toFixed(1) + "m" : "N/A"}
-							</p>
+		<div className="relative w-full h-full">
+			<MapContainer center={center} zoom={13} className="w-full h-full">
+				<TileLayer
+					attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+					url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+				/>
+				{locations.map((location, idx) => (
+					<CircleMarker
+						key={idx}
+						center={[location.latitude, location.longitude]}
+						eventHandlers={{
+							click: () => setSelected(location),
+						}}
+					/>
+				))}
+			</MapContainer>
+
+			{selected && (
+				<Card className="absolute bottom-4 left-4 right-4 z-[1000] shadow-lg">
+					<CardContent className="flex flex-col gap-1 text-sm py-0">
+						<div className="flex justify-between items-center">
+							<span className="font-semibold">Location Details</span>
+							<button
+								onClick={() => setSelected(null)}
+								className="text-muted-foreground hover:text-foreground text-lg leading-none cursor-pointer"
+							>
+								&times;
+							</button>
 						</div>
-					</Popup>
-				</CircleMarker>
-			))}
-		</MapContainer>
+						<p>
+							<strong>User:</strong> {selected.user_id}
+						</p>
+						<p>
+							<strong>Device:</strong> {selected.device_id || "Unknown"}
+						</p>
+						<p>
+							<strong>Time:</strong>{" "}
+							{new Date(selected.timestamp).toLocaleString()}
+						</p>
+						<p>
+							<strong>Accuracy:</strong>{" "}
+							{selected.accuracy ? selected.accuracy.toFixed(1) + "m" : "N/A"}
+						</p>
+					</CardContent>
+				</Card>
+			)}
+		</div>
 	);
 }

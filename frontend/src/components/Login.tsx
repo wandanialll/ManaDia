@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import "./Login.css";
+import { Field, FieldLabel } from "./ui/field";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "./ui/card";
 
 export default function Login() {
 	const [username, setUsername] = useState("admin");
@@ -27,43 +36,50 @@ export default function Login() {
 	};
 
 	return (
-		<div className="login-container">
-			<div className="login-box">
-				<h1>Manadia Dashboard</h1>
-				<p className="login-subtitle">Location Tracking Dashboard</p>
+		<div className="min-h-screen flex items-center justify-center p-4">
+			<Card className="w-full max-w-sm">
+				<CardHeader>
+					<CardTitle>login to your account</CardTitle>
+					<CardDescription>location tracking dashboard</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<form onSubmit={handleSubmit}>
+						<div className="flex flex-col gap-5">
+							<div className="grid gap-2">
+								<Field>
+									<FieldLabel>username</FieldLabel>
+									<Input
+										value={username}
+										onChange={(e) => setUsername(e.target.value)}
+										type="text"
+										placeholder="enter your username"
+									/>
+								</Field>
+							</div>
 
-				<form onSubmit={handleSubmit}>
-					<div className="form-group">
-						<label htmlFor="username">Username</label>
-						<input
-							type="text"
-							id="username"
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							placeholder="admin"
-							autoComplete="username"
-						/>
-					</div>
+							<div className="grid gap-2">
+								<Field>
+									<FieldLabel>password</FieldLabel>
+									<Input
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										type="password"
+										placeholder="enter your password"
+									/>
+								</Field>
+							</div>
 
-					<div className="form-group">
-						<label htmlFor="password">Password</label>
-						<input
-							type="password"
-							id="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="Enter password"
-							autoComplete="current-password"
-						/>
-					</div>
+							<div>
+								{error && <div className="error-message">{error}</div>}
 
-					{error && <div className="error-message">{error}</div>}
-
-					<button type="submit" disabled={loading} className="login-btn">
-						{loading ? "Logging in..." : "Login"}
-					</button>
-				</form>
-			</div>
+								<Button type="submit" disabled={loading} className="w-full">
+									{loading ? "Logging in..." : "Login"}
+								</Button>
+							</div>
+						</div>
+					</form>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

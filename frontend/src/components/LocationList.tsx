@@ -1,52 +1,50 @@
 import { Location } from "../api/client";
-import "./LocationList.css";
 import { Card, CardContent } from "./ui/card";
 
 interface LocationListProps {
 	locations: Location[];
+	onClose?: () => void;
 }
 
-export default function LocationList({ locations }: LocationListProps) {
+export default function LocationList({
+	locations,
+	onClose,
+}: LocationListProps) {
 	return (
 		<div className="location-list">
-			<h3>Recent Locations ({locations.length})</h3>
+			<div className="flex justify-between items-center px-1 py-2">
+				<h3 className="text-sm font-semibold m-0 p-0">
+					Recent Locations ({locations.length})
+				</h3>
+				{onClose && (
+					<button
+						onClick={onClose}
+						className="text-muted-foreground hover:text-foreground text-lg leading-none cursor-pointer md:hidden"
+					>
+						&times;
+					</button>
+				)}
+			</div>
 			<div className="list-items">
 				{locations.length === 0 ? (
 					<p className="empty">No locations match your filters</p>
 				) : (
 					locations.slice(0, 20).map((loc, idx) => (
-						// <div key={idx} className="list-item">
-						// 	<div className="list-item-header">
-						// 		<strong>{loc.user_id}</strong>
-						// 		<span className="device-badge">
-						// 			{loc.device_id || "Unknown"}
-						// 		</span>
-						// 	</div>
-						// 	<div className="list-item-coords">
-						// 		{loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
-						// 	</div>
-						// 	<div className="list-item-time">
-						// 		{new Date(loc.timestamp).toLocaleString()}
-						// 	</div>
-						// </div>
-						<Card key={idx} className="m-3">
-							{/* <CardHeader>
-								<CardTitle>{loc.user_id}</CardTitle>
-							</CardHeader> */}
-							<CardContent className="flex flex-col">
-								<div>
-									<strong>{loc.user_id}</strong>
+						<Card key={idx} className="mx-1 my-2 py-3">
+							<CardContent className="flex flex-col gap-1 text-sm py-0">
+								<div className="flex justify-between items-center">
+									<span className="font-semibold">{loc.user_id}</span>
+									<span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+										{loc.device_id || "Unknown"}
+									</span>
 								</div>
-								<div>
+								<p className="font-mono text-xs text-muted-foreground">
 									{loc.latitude.toFixed(4)}, {loc.longitude.toFixed(4)}
-								</div>
-								<div className="text-gray-500 text-xs">
+								</p>
+								<p className="text-xs text-muted-foreground">
 									{new Date(loc.timestamp).toLocaleString()}
-								</div>
+								</p>
 							</CardContent>
-							{/* <CardFooter>
-								{new Date(loc.timestamp).toLocaleString()}
-							</CardFooter> */}
 						</Card>
 					))
 				)}
